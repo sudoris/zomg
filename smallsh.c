@@ -35,11 +35,11 @@ struct Args *getArgs(char *cmd) {
     char *token, *tracker;      // tracker is used by strtok_r to keep track of the remaining portion of the string being tokenized   
     token = strtok_r(cmd, " ", &tracker);
     int counter = 0;
-    while (token != NULL) {        
+    while (token != NULL) {           
         if (counter == 0) {
             tempArgs = args->args;
         } else {
-            // Note to self: realloc copies the data over to the new memory location, you do NOT have to do this yourself!!!
+            // Note to self: realloc copies the data over to the new memory location for you!!!
             tempArgs = (char **)realloc(args->args, (counter+1)*sizeof(char *));
         }           
         if (tempArgs == NULL) {     // Memory reallocation failed
@@ -70,7 +70,9 @@ void printArgs(struct Args *args) {
 int getCmdType(char *cmd) {
     int cmdLength = strlen(cmd);
     
-    if (strcmp(cmd, "exit") == 0) {
+    if (cmdLength == 0) {
+        return 0;
+    } else if (strcmp(cmd, "exit") == 0) {
         return 1;
     } else if (strncmp(cmd, "cd", 2) == 0) {    // Check if command starts with "cd" 
         if (cmdLength == 2) {
@@ -80,6 +82,12 @@ int getCmdType(char *cmd) {
         }
     } else if (strcmp(cmd, "status") == 0) {
         return 3;
+    } else if (cmd[cmdLength-1] != '&') {
+        return 4;
+    } else if (cmd[cmdLength-1] == '&' && cmd[cmdLength-2] == ' ') {
+        return 5;
+    } else if (cmd[0] == '#') {
+        return 6;
     }
 
     return -1;
@@ -98,17 +106,31 @@ void freeArgs(struct Args *args) {
 void handleCd(char *cmd) {
     struct Args *args;
     args = getArgs(cmd);
-    printArgs(args);
-    freeArgs(args);
+    char *path;
+    if (args->length > 1) {
+        path = args->args[1];    // Argument that comes after "cd" is path of directory to open
+    } else if (args->length == 1) {     // If no arguments other than "cd" were given, change to HOME directory
+        path = getenv("HOME");
+    }
+    int result = chdir(path);
+    if (result == -1) {
+        printf("Error changing to directory\n");
+    } else {
+        char cwd[2048];
+        getcwd(cwd, sizeof(cwd));
+        printf("Currerent working directory is now: %s\n", cwd);
+    }     
 
+    freeArgs(args);
 }
 
 void handleStatus(char *cmd) {
-
+    
 }
 
-void handleFg() {
-
+void handleFg(char *cmd) {
+    struct Args *args;
+    args = getArgs(cmd);
 }
 
 void handleBg() {
@@ -135,20 +157,20 @@ int main() {
         if (cmdType == 1) {            
             break;
         } else if (cmdType == 2) {
-            printf("cd entered...\n");
             handleCd(cmd);
         } else if (cmdType == 3) {
-            printf("status entered...\n");
             handleStatus(cmd);
         } else if (cmdType == 4) {
             handleFg(cmd);
         } else if (cmdType == 5) {
             handleBg(cmd);
         } else if (cmdType == 6) {
-            handleComment();
+            // Do nothing            
         } else if (cmdType == -1) {            
             printf("Command %s not recognized\n", cmd);
-        } 
+        } else if (cmdType == 0) {
+            // Do nothing
+        }
     }
     return 0;
 }
