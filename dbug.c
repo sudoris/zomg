@@ -18,7 +18,7 @@ struct Args {
 void *getCommand(char *cmd) {    
     printf(": ");
     fflush(stdout);
-    char *buffer = NULL;
+    char *buffer;
     size_t inputLength = 0;
     if (getline(&buffer, &inputLength, stdin) != -1) {
         int len = strlen(buffer);

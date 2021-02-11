@@ -1,0 +1,14 @@
+total 44
+drwxr-xr-x 1 sudoris sudoris  4096 Feb 11 09:42 .
+drwxr-xr-x 1 sudoris sudoris  4096 Feb  9 18:39 ..
+drwxr-xr-x 1 sudoris sudoris  4096 Feb 10 21:33 .git
+drwxr-xr-x 1 sudoris sudoris  4096 Feb 10 13:10 .vscode
+-rwxr-xr-x 1 sudoris sudoris 18720 Feb 11 09:42 smallsh
+-rw-r--r-- 1 sudoris sudoris  9108 Feb 11 09:42 smallsh.c
+drwxr-xr-x 1 sudoris sudoris  4096 Feb 10 21:11 testdir
+-rw-r----- 1 sudoris sudoris    42 Feb 11 00:01 testes
+-rw-r----- 1 sudoris sudoris    63 Feb 11 01:09 testes123
+-rw-r----- 1 sudoris sudoris     0 Feb 11 09:42 testlsls33
+-rw-r----- 1 sudoris sudoris    34 Feb 11 00:38 testnow
+-rw-r----- 1 sudoris sudoris    36 Feb 11 01:09 testseee
+-rw-r----- 1 sudoris sudoris     0 Feb 11 01:07 testsubarr
