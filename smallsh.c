@@ -15,7 +15,7 @@ struct Args {
     char **args;    
 };
 
-void *getCommand(char *cmd) {    
+char *getCommand(char *cmd) {    
     printf(": ");
     fflush(stdout);
     char *buffer = NULL;
@@ -26,26 +26,12 @@ void *getCommand(char *cmd) {
             buffer[len-1] = 0;            
         } 
         cmd = (char *)malloc((strlen(buffer))*sizeof(char));
-        strcpy(cmd, buffer);
-
-        // Remove "\n" that getline adds to end of input
-        // int len = strlen(cmd);
-        // if (len > 0 && cmd[len-1] == '\n') {    
-        //     cmd[len-1] = 0;            
-        // }        
-        // char *temp = (char *)malloc(len * sizeof(char));
-        // strcpy(temp, cmd);
-        // cmd = temp;       
+        strcpy(cmd, buffer);      
     } 
 
-    // printf(": ");
-	// fflush(stdout);
-	// cmd[0] = '\0';
-	// fgets(cmd, 2048, stdin);
-    // int len = strlen(cmd);
-    // if (len > 0 && cmd[len-1] == '\n') {    
-    //     cmd[len-1] = '\0';            
-    // }    
+    free(buffer);  
+
+    return cmd;     
 }
 
 // Get subarray to be used as null terminated array of string arguments for execvp
@@ -136,9 +122,7 @@ void freeArgs(struct Args *args) {
     free(args);
 }
 
-void handleCd(char *cmd) {
-    struct Args *args;
-    args = getArgs(cmd);
+void handleCd(struct Args *args) {    
     char *path;
     if (args->length > 1) {
         path = args->args[1];    // Argument that comes after "cd" is path of directory to open
@@ -155,8 +139,6 @@ void handleCd(char *cmd) {
         printf("Currerent working directory is now: %s\n", cwd);
         fflush(stdout);
     }     
-
-    freeArgs(args);
 }
 
 void printStatus(int status) {
@@ -196,9 +178,7 @@ int redirect(char* symbol, char *filename) {
 }
 
 // Handle creation of foreground processes
-void handleFg(char *cmd, int *statusPtr) {
-    struct Args *args;
-    args = getArgs(cmd);
+void handleFg(struct Args *args, int *statusPtr) {
     // Uses code from "Exploration: Process API – Creating and Terminating Processes"
     int childStatus;
     pid_t childPID = -5;
@@ -243,11 +223,7 @@ void handleFg(char *cmd, int *statusPtr) {
                 }                        
                 execvp(newArgs[0], newArgs);                                                           
             } else if (args->length == 1) {
-                printf("calling execvp\n");   
-                fflush(stdout);   
                 execvp(args->args[0], args->args);          
-                printf("execvp failed\n");   
-                fflush(stdout);   
             }  
 
             // execvp only returns if error, so we know that the following code will only be executed if an error occurred            
@@ -267,8 +243,7 @@ void handleFg(char *cmd, int *statusPtr) {
 
             printf("actual exit status %d\n", WEXITSTATUS(childStatus));
             fflush(stdout);
-
-            freeArgs(args);
+           
 			break;
 	}   
 }
@@ -284,26 +259,26 @@ int main() {
     status = 0;
     statusPtr = &status;
     int cmdType = -1;
-    while(1) {
-        if (cmd != NULL) {
-            free(cmd);
-        }
-        getCommand(cmd);       
+    struct Args *args;
+    while(1) {               
+        cmd = getCommand(cmd);   
+        printf("Cmd is: %s\n", cmd);    
         cmdType = getCmdType(cmd);
+        args = getArgs(cmd);
+        free(cmd);              
         if (cmdType == 1) {     // exit
             break;
         } else if (cmdType == 2) {      // cd
-            handleCd(cmd);
+            handleCd(args);
         } else if (cmdType == 3) {      // status
             printStatus(status);
         } else if (cmdType == 4) {      // run in foreground 
-            printf("Running foreground process\n");
             fflush(stdout);
-            handleFg(cmd, statusPtr);
+            handleFg(args, statusPtr);
         } else if (cmdType == 5) {      // run in background
             printf("Running background process\n");
             fflush(stdout);
-            handleBg(cmd);
+            handleBg(args);
         } else if (cmdType == 6) {      // comment
             // Do nothing            
         } else if (cmdType == -1) {     // invalid
@@ -312,6 +287,7 @@ int main() {
         } else if (cmdType == 0) {      // blank line
             // Do nothing
         }
+        freeArgs(args);
     }
     return 0;
 }
